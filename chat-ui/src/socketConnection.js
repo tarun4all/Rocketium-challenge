@@ -11,15 +11,16 @@ socket.on('connect', function () {
 function SocketService() {
     const globalState = useContext(store);
     const { state, dispatch } = globalState;
-    const { avatar, chat } = state;
+    const { avatar, msg } = state;
 
     useEffect(() => {
         if (avatar) socket.emit("setAvatar", state.avatar);
     }, [avatar]);
 
     useEffect(() => {
-        if (chat.length) socket.emit("sendMsg", chat[chat.length - 1]);
-    }, [chat.length]);
+        console.log("sending...");
+        if (msg) socket.emit("sendMsg", msg);
+    }, [msg]);
 
     socket.on('master', function (data) {
         dispatch({ type: "AVATAR_FREE", value: true });
@@ -30,9 +31,7 @@ function SocketService() {
     });
 
     socket.on('msg', function (msgObj) {
-        if (socket.id !== msgObj.id) {
-
-        }
+        if (msgObj) dispatch({ type: "UPDATE_CHAT", msg: msgObj.msg, avatar: msgObj.avatar, time: msgObj.time, isReceived: socket.id !== msgObj.sendBy ? true : false });
     });
 
     socket.on('welcome', function (data) {
@@ -40,8 +39,12 @@ function SocketService() {
         if (data.allowedToSend) dispatch({ type: "ALLOW_SEND", value: true });
     });
 
+    socket.on('avatarSelected', function (data) {
+        dispatch({ type: "AVATAR_FREE", value: false });
+    });
+
     socket.on('disconnect', function () {
-        console.log("Disconnected");
+        alert("Chat disconnected");
     });
 
     return <div></div>;

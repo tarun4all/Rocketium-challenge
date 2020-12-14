@@ -6,6 +6,7 @@ const io = require('socket.io')(http, {
     }
 });
 const tempDB = {
+    defaultAvatar: '',
     master: "",
     slaves: [],
 }
@@ -21,17 +22,25 @@ io.on('connection', (socket) => {
     }
     io.to(socket.id).emit("welcome", { allowedToSend: false });
 
-    socket.on('setAvatar', () => {
+    socket.on('setAvatar', (avatar) => {
         if (tempDB.master) {
             io.to(socket.id).emit("error", 'Not allowed');
         } else {
             tempDB.master = socket.id;
+            tempDB.defaultAvatar = avatar;
             io.to(socket.id).emit("welcome", { allowedToSend: true });
+            io.emit('avatarSelected', null);
         }
     });
     socket.on('sendMsg', (msg) => {
-        console.log(msg);
-        io.emit('master', 'Please select avatar');
+        io.emit('msg', { msg, avatar: tempDB.defaultAvatar, sendBy: socket.id, time: new Date() });
+    });
+    socket.on('disconnect', () => {
+        if (tempDB.master == socket.id) {
+            tempDB.master = '';
+            io.emit('master', 'Please select avatar');
+        }
+        console.log('user disconnected');
     });
 });
 

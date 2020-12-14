@@ -2,6 +2,7 @@ import React, { createContext, useReducer } from 'react';
 
 const initialState = {
     avatar: '',
+    msg: "",
     isAvatarFree: false,
     allowedToSend: false,
     chat: [],
@@ -12,9 +13,10 @@ const { Provider } = store;
 const StateProvider = ({ children }) => {
     const [state, dispatch] = useReducer((state, action) => {
         switch (action.type) {
-            case 'SEND_CHAT':
+            case 'SEND_CHAT': return { ...state, msg: action.value }; break;
+            case 'UPDATE_CHAT':
                 const _state = { ...state };
-                _state.chat = [..._state.chat, { chat: action.value, isReceived: false, avatar: 'TB', time: "7:22PM" }];
+                _state.chat = [..._state.chat, { chat: action.msg, isReceived: action.isReceived, avatar: action.avatar, time: action.time }];
                 return { ..._state }; break;
             case 'AVATAR_FREE':
                 return { ...state, isAvatarFree: action.value }; break;
